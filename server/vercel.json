@@ -1,4 +1,4 @@
-  {
+{
     "version": 2,
     "builds": [
         {
@@ -13,8 +13,18 @@
     ],
     "routes": [
         {
+            "src": "/socket.io/(.*)",
+            "dest": "server.js"
+        },
+        {
             "src": "/(.*)",
             "dest": "server.js"
         }
-    ]
+    ],
+    "functions": {
+        "server.js": {
+            "maxDuration": 10,
+            "runtime": "vercel-nodejs@4.0.0"
+        }
+    }
 }
