@@ -8,17 +8,18 @@ import messageRouter from './routes/messageRoutes.js';
 import { Server } from "socket.io";
 
 // create express app and http server
+
 const app = express();
 const server = http.createServer(app)
 
 // initialize socket.io server
+
 export const io = new Server(server, {
-    cors: {origin: "*"},
-    // Add this for serverless environments
-    path: "/socket.io/"
+    cors: {origin: "*"}
 })
 
 // store online users
+
 export const userSocketMap = {}; //{ userId: socketId }
 
 // socket.io connection handler
@@ -35,12 +36,16 @@ io.on("connection", (socket)=>{
         console.log("User Disconnected", userId);
         delete userSocketMap[userId];
         io.emit("getOnlineUsers", Object.keys(userSocketMap))
+        
     })
+    
 })
 
 // middleware setup
+
 app.use(express.json({limit: "4mb"}));
 app.use(cors());
+
 
 // route setup
 app.use("/api/status", (req, res)=> res.send("Server is live"));
@@ -50,12 +55,11 @@ app.use("/api/messages", messageRouter);
 // connect to mongoDB
 await connectDB();
 
-// ✅ FIX: Export the app (not the server) for Vercel
-export default app;
-
-// ⚠️ IMPORTANT: For local development only
-// Vercel will handle this automatically in production
-if (process.env.NODE_ENV !== "production") {
+if(process.env.NODE_ENV !== "production"){
     const PORT = process.env.PORT || 5000;
     server.listen(PORT, ()=> console.log("Server is running on PORT:" + PORT));
+
 }
+
+// Export server for Vercel
+export default server;
