@@ -56,18 +56,15 @@ app.get("/api/status", (req, res) => {
 app.use("/api/auth", userRouter);
 app.use("/api/messages", messageRouter);
 
-// ================= START SERVER FIRST, THEN CONNECT DB =================
+// ================= START SERVER =================
 const PORT = process.env.PORT || 5000;
 
 server.listen(PORT, () => {
   console.log("Server is running on PORT:", PORT);
+});
 
-  connectDB()
-    .then(() => {
-      console.log("Database Connected");
-    })
-    .catch((err) => {
-      console.error("Database Connection Failed:", err.message);
-      process.exit(1);
-    });
+// ================= CONNECT DATABASE (ONCE) =================
+connectDB().catch((err) => {
+  console.error("Database Connection Failed:", err.message);
+  process.exit(1);
 });
