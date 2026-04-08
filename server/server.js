@@ -3,7 +3,6 @@ import "dotenv/config";
 import cors from "cors";
 import http from "http";
 import { Server } from "socket.io";
-
 import { connectDB } from "./lib/db.js";
 import userRouter from "./routes/userRoutes.js";
 import messageRouter from "./routes/messageRoutes.js";
@@ -16,31 +15,27 @@ const server = http.createServer(app);
 // ================= SOCKET.IO SETUP =================
 export const io = new Server(server, {
   cors: {
-    origin: "*", // 🔥 change to frontend URL in production
+    origin: "*",
   },
 });
 
 // ================= STORE ONLINE USERS =================
-export const userSocketMap = {}; // { userId: socketId }
+export const userSocketMap = {};
 
 // ================= SOCKET CONNECTION =================
 io.on("connection", (socket) => {
   const userId = socket.handshake.query.userId;
-
   console.log("User Connected:", userId);
 
   if (userId) {
     userSocketMap[userId] = socket.id;
   }
 
-  // Send online users to all clients
   io.emit("getOnlineUsers", Object.keys(userSocketMap));
 
   socket.on("disconnect", () => {
     console.log("User Disconnected:", userId);
-
     delete userSocketMap[userId];
-
     io.emit("getOnlineUsers", Object.keys(userSocketMap));
   });
 });
@@ -61,12 +56,18 @@ app.get("/api/status", (req, res) => {
 app.use("/api/auth", userRouter);
 app.use("/api/messages", messageRouter);
 
-// ================= DATABASE =================
-await connectDB();
-
-// ================= START SERVER =================
+// ================= START SERVER FIRST, THEN CONNECT DB =================
 const PORT = process.env.PORT || 5000;
 
 server.listen(PORT, () => {
   console.log("Server is running on PORT:", PORT);
+
+  connectDB()
+    .then(() => {
+      console.log("Database Connected");
+    })
+    .catch((err) => {
+      console.error("Database Connection Failed:", err.message);
+      process.exit(1);
+    });
 });
